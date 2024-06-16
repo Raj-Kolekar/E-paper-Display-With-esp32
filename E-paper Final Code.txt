@@ -1,0 +1,422 @@
+//Worked file named as Stock_price_monitering.ino in Arduino ide
+
+#include <GxEPD.h> // include <GxEPD.h> is used for a simple E-Paper display library for microcontroller
+#include <GxGDEY027T91/GxGDEY027T91.h>    // 2.7" b/w
+#include GxEPD_BitmapExamples
+#include <Fonts/FreeMonoBold12pt7b.h>
+
+#include <GxIO/GxIO_SPI/GxIO_SPI.h>
+#include <GxIO/GxIO.h> //  include the General Purpose Input/Output (GPIO) header file.
+#include <WiFi.h> // connect to a WiFi network using the Arduino WiFi shield
+#include <WiFiMulti.h>// to connect an ESP32 to the WiFi network with the strongest signal, and automatically switch to the next strongest network if the connection is lost.
+
+#include <HTTPClient.h> // used to make HTTP GET, POST, and PUT requests to a web server from microcontroller
+
+String DATE;
+String TIME;
+String DAY;
+String FIRST;
+String SECOND;
+String THIRD;
+String FOURTH;
+String FIFTH;
+String SIXTH;
+String SEVENTH;
+String EIGHTH;
+
+
+WiFiMulti WiFiMulti;
+
+#define uS_TO_S_FACTOR 1000000  
+#define TIME_TO_SLEEP  300        
+
+RTC_DATA_ATTR int bootCount = 0;
+
+
+
+#if defined(ESP32)
+
+GxIO_Class io(SPI, /*CS=5*/ SS, /*DC=*/ 17, /*RST=*/ 16); // arbitrary selection of 17, 16
+GxEPD_Class display(io, /*RST=*/ 16, /*BUSY=*/ 4); // arbitrary selection of (16), 4
+
+
+#else
+
+GxIO_Class io(SPI, /*CS=*/ SS, /*DC=*/ 8, /*RST=*/ 9); // arbitrary selection of 8, 9 selected for default of GxEPD_Class
+GxEPD_Class display(io, /*RST=*/ 9, /*BUSY=*/ 7); // default selection of (9), 7
+
+#endif
+
+
+void setup()
+{
+  Serial.begin(115200); // the number of signal changes, or symbols, that occur per second through a transmission medium.
+  Serial.println();
+  Serial.println("setup");
+
+  display.init(115200); // enable diagnostic output on Serial
+
+  Serial.println("setup done");
+
+  for (uint8_t t = 4; t > 0; t--) {
+    Serial.printf("[SETUP] WAIT %d...\n", t);
+    Serial.flush();
+    delay(1000);
+  }
+
+  WiFi.mode(WIFI_STA); // a function that sets the ESP32 board to station mode, which connects the board to a Wi-Fi access point.
+  WiFiMulti.addAP("raj's", "12345678");
+
+  ++bootCount;
+  Serial.println("Boot number: " + String(bootCount));
+
+
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
+                 " Seconds");
+
+}
+
+void loop()
+{
+
+  //DATE
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+    HTTPClient http;
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=09N7ZTM92F4257ZG"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        DATE = http.getString();
+        Serial.println(DATE);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+
+//TIME
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=SU3P1CO3SHRS316C"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        TIME = http.getString();
+        Serial.println(TIME);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //DAY
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=U3XWRGNK1LK8H75Y"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        DAY = http.getString();
+        Serial.println(DAY);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //eight
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=EI7M2JZ4YLPT3WCP"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    int httpCode = http.GET();
+
+    if (httpCode > 0) {
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      if (httpCode == HTTP_CODE_OK) {
+        FIRST = http.getString();
+        Serial.println(FIRST);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+
+//SECOND
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=CV12K70KBJ4G3RKD"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        SECOND = http.getString();
+        Serial.println(SECOND);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //THIRD
+    if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=NRD8R0RXR64SL2G5"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        THIRD = http.getString();
+        Serial.println(THIRD);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //FOURTH
+    if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=MCA3M1PAX20XD2EW"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        FOURTH = http.getString();
+        Serial.println(FOURTH);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //FIFTH
+    if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=85Z4IGNRR2PC4A7Q"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        FIFTH = http.getString();
+        Serial.println(FIFTH);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //Sixth
+    if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=366DJ3E12R9D7TFS"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        SIXTH = http.getString();
+        Serial.println(SIXTH);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+  //seven
+  if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+
+    HTTPClient http;
+
+    Serial.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin("https://api.thingspeak.com/apps/thinghttp/send_request?api_key=3KRLXB6L7XAOIAXJ"); //HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        SEVENTH = http.getString();
+        Serial.println(SEVENTH);
+      }
+    } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+  }
+
+
+  const char* name = "FreeMonoBold12pt7b";
+  const GFXfont* f = &FreeMonoBold12pt7b;
+  display.fillScreen(GxEPD_WHITE);
+  display.setTextColor(GxEPD_BLACK);
+  display.setFont(f);
+
+
+  display.setCursor(0, 0);
+  display.println();
+  display.print(DATE);
+  display.setCursor(0, 30);
+  display.println();
+  display.print(DAY);
+  display.setCursor(0, 60);
+  display.println();
+  display.print(TIME);
+  display.setCursor(0, 90);
+  display.println();
+  display.print(FIRST);
+ display.setCursor(0, 120);
+ display.println();
+ display.print(SECOND);
+  display.setCursor(0, 150);
+ display.println();
+ display.print(THIRD);
+  display.setCursor(0, 180);
+ display.println();
+ display.print(FOURTH);
+ display.setCursor(0, 210);
+ display.println();
+ display.print(SEVENTH);
+display.setCursor(0, 235);
+ display.println();
+ //display.print(SIXTH);
+
+  display.update();
+  display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT);
+  delay(500);
+  display.updateWindow(0, 0, GxEPD_WIDTH, GxEPD_HEIGHT);
+
+  Serial.println("Going to sleep now");
+  esp_deep_sleep_start();
+}
